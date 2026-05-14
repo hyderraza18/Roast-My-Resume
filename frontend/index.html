@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roast My Resume 🔥</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0a0a0a;
+      color: #f0ece4;
+      font-family: 'Space Mono', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 20px 80px;
+    }
+
+    /* HEADER */
+    .logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(52px, 10vw, 96px);
+      line-height: 0.9;
+      letter-spacing: 4px;
+      text-align: center;
+      background: linear-gradient(135deg, #ff3c1a, #ff8c00, #ffd700);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 30px rgba(255,60,26,0.4));
+    }
+
+    .tagline {
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: #555;
+      text-transform: uppercase;
+      text-align: center;
+      margin-top: 12px;
+      margin-bottom: 48px;
+    }
+
+    /* UPLOAD */
+    .upload-zone {
+      width: 100%;
+      max-width: 560px;
+      border: 2px dashed #333;
+      border-radius: 4px;
+      padding: 56px 32px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: #ff3c1a;
+      background: rgba(255,60,26,0.05);
+    }
+
+    .upload-icon { font-size: 48px; display: block; margin-bottom: 16px; }
+    .upload-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+    .upload-sub { font-size: 11px; color: #555; letter-spacing: 1px; }
+
+    #fileInput { display: none; }
+
+    .file-chip {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 4px;
+      padding: 8px 16px;
+      font-size: 12px;
+      color: #888;
+      margin-top: 12px;
+      width: fit-content;
+    }
+
+    .file-chip span { color: #f0ece4; }
+
+    .roast-btn {
+      width: 100%;
+      max-width: 560px;
+      margin-top: 16px;
+      padding: 18px;
+      background: #ff3c1a;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      letter-spacing: 3px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .roast-btn:hover:not(:disabled) {
+      background: #ff5c3a;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(255,60,26,0.35);
+    }
+
+    .roast-btn:disabled { background: #222; color: #444; cursor: not-allowed; }
+
+    /* RESULT */
+    .result { display: none; width: 100%; max-width: 680px; margin-top: 40px; }
+
+    .score-panel {
+      border-radius: 4px;
+      padding: 32px;
+      text-align: center;
+      border: 1px solid #222;
+      background: #111;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .score-number {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 120px;
+      line-height: 1;
+    }
+
+    .verdict {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 24px;
+      letter-spacing: 3px;
+      color: #777;
+      margin-top: 6px;
+    }
+
+    .score-bar-bg {
+      height: 4px;
+      background: #1a1a1a;
+      border-radius: 2px;
+      margin-top: 20px;
+      overflow: hidden;
+    }
+
+    .score-bar-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 2px;
+      transition: width 1.5s cubic-bezier(0.34,1.1,0.64,1);
+    }
+
+    /* ANIMATION STAGE */
+    .anim-stage {
+      height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      margin: 8px 0;
+    }
+
+    /* ROAST TEXT */
+    .roast-box {
+      background: #0d0d0d;
+      border: 1px solid #1e1e1e;
+      border-radius: 4px;
+      padding: 28px 32px;
+    }
+
+    .roast-label {
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: #444;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 10px;
+      letter-spacing: 2px;
+      margin-top: 20px;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .opening { font-size: 15px; line-height: 1.7; font-style: italic; }
+    .good { color: #22c55e; }
+    .bad { color: #ef4444; }
+    .neutral { color: #ccc; }
+    .accent { color: #ff3c1a; }
+
+    .item { font-size: 13px; line-height: 1.8; color: #ccc; }
+
+    .advice-box {
+      margin-top: 20px;
+      padding: 16px;
+      background: #111;
+      border-left: 3px solid #ff3c1a;
+      font-size: 13px;
+      line-height: 1.7;
+      color: #ccc;
+    }
+
+    .again-btn {
+      width: 100%;
+      margin-top: 24px;
+      padding: 14px;
+      background: transparent;
+      color: #444;
+      border: 1px solid #222;
+      border-radius: 4px;
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.2s;
+    }
+
+    .again-btn:hover { border-color: #ff3c1a; color: #ff3c1a; }
+
+    /* LOADING */
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 40px;
+      width: 100%;
+      max-width: 560px;
+      margin-top: 40px;
+    }
+
+    .loading-text {
+      font-size: 13px;
+      color: #ff3c1a;
+      letter-spacing: 2px;
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* TIER COLORS */
+    .t0 .score-number { color: #ff3c1a; text-shadow: 0 0 40px rgba(255,60,26,0.5); }
+    .t0 .score-bar-fill { background: #ff3c1a; }
+    .t0 { border-color: #ff3c1a !important; background: #120300 !important; }
+
+    .t1 .score-number { color: #ff6b35; text-shadow: 0 0 40px rgba(255,107,53,0.5); }
+    .t1 .score-bar-fill { background: #ff6b35; }
+    .t1 { border-color: #ff6b35 !important; background: #130500 !important; }
+
+    .t2 .score-number { color: #ef4444; text-shadow: 0 0 40px rgba(239,68,68,0.4); }
+    .t2 .score-bar-fill { background: #ef4444; }
+    .t2 { border-color: #ef4444 !important; background: #110000 !important; }
+
+    .t3 .score-number { color: #eab308; text-shadow: 0 0 40px rgba(234,179,8,0.4); }
+    .t3 .score-bar-fill { background: #eab308; }
+    .t3 { border-color: #eab308 !important; background: #111100 !important; }
+
+    .t4 .score-number { color: #22c55e; text-shadow: 0 0 40px rgba(34,197,94,0.4); }
+    .t4 .score-bar-fill { background: #22c55e; }
+    .t4 { border-color: #22c55e !important; background: #001108 !important; }
+
+    .t5 .score-number { color: #ffd700; animation: holyGlow 2s ease-in-out infinite; }
+    .t5 .score-bar-fill { background: linear-gradient(90deg,#ffd700,#fff9a0,#ffd700); animation: goldShimmer 2s linear infinite; background-size: 200%; }
+    .t5 { border-color: #ffd700 !important; background: #111100 !important; }
+
+    @keyframes holyGlow {
+      0%,100% { text-shadow: 0 0 40px rgba(255,215,0,0.6); }
+      50% { text-shadow: 0 0 80px rgba(255,215,0,1), 0 0 120px rgba(255,215,0,0.4); }
+    }
+    @keyframes goldShimmer { from{background-position:0%} to{background-position:200%} }
+
+    /* ANIMATIONS */
+
+    /* Shredder */
+    .paper {
+      width: 110px; height: 90px;
+      background: #f5f0e8;
+      border: 1px solid #ddd;
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      display: flex; flex-direction: column;
+      padding: 8px; gap: 5px;
+      animation: feedPaper 0.7s 0.3s forwards;
+    }
+    .paper-line { height: 4px; background: #ccc; border-radius: 2px; }
+    @keyframes feedPaper { to { transform: translateX(-50%) translateY(60px); } }
+
+    .shredder {
+      width: 150px; height: 44px;
+      background: #1a1a1a;
+      border: 2px solid #ff3c1a;
+      border-radius: 6px;
+      position: absolute;
+      bottom: 20px; left: 50%;
+      transform: translateX(-50%);
+      display: flex; align-items: center; justify-content: center;
+      gap: 3px; overflow: hidden;
+    }
+
+    .strip {
+      width: 7px; height: 0;
+      background: #f5f0e8;
+      border-radius: 0 0 3px 3px;
+      animation: stripOut 0.8s 1s ease-in forwards;
+    }
+    @keyframes stripOut {
+      0%{height:0} 40%{height:55px} 100%{height:55px;transform:translateY(15px);opacity:0}
+    }
+
+    .sparks {
+      position: absolute; width: 100%; height: 100%;
+      top: 0; left: 0; pointer-events: none;
+    }
+    .spark {
+      position: absolute;
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      top: 50%; left: 50%;
+      animation: sparkFly 0.7s ease-out forwards;
+      animation-delay: var(--d);
+      background: var(--c);
+    }
+    @keyframes sparkFly {
+      0%{transform:translate(0,0);opacity:1}
+      100%{transform:translate(var(--x),var(--y));opacity:0}
+    }
+
+    /* Torn */
+    .half {
+      width: 150px; height: 58px;
+      background: #f5f0e8;
+      border: 1px solid #ddd;
+      position: absolute;
+      left: 50%;
+      display: flex; flex-direction: column;
+      padding: 6px; gap: 5px;
+    }
+    .half-top {
+      top: 20px;
+      transform: translateX(-50%);
+      clip-path: polygon(0 0,100% 0,100% 75%,90% 100%,75% 75%,60% 100%,45% 75%,30% 100%,15% 75%,0 100%);
+      animation: flyTop 0.9s 0.4s ease-in-out forwards;
+    }
+    .half-bot {
+      top: 78px;
+      transform: translateX(-50%);
+      clip-path: polygon(0 25%,15% 0,30% 25%,45% 0,60% 25%,75% 0,90% 25%,100% 0,100% 100%,0 100%);
+      animation: flyBot 0.9s 0.4s ease-in-out forwards;
+    }
+    @keyframes flyTop { to{transform:translateX(calc(-50% - 55px)) rotate(-22deg) translateY(-15px);opacity:0.3} }
+    @keyframes flyBot { to{transform:translateX(calc(-50% + 55px)) rotate(18deg) translateY(15px);opacity:0.3} }
+
+    /* Red pen */
+    .doc {
+      width: 150px; height: 130px;
+      background: #fafaf8;
+      border: 1px solid #ddd;
+      border-radius: 2px;
+      padding: 10px 8px;
+      display: flex; flex-direction: column; gap: 5px;
+      position: relative; overflow: hidden;
+    }
+    .dline { height: 5px; background: #e0ddd8; border-radius: 2px; }
+    .scribble { position: absolute; top:0;left:0;width:100%;height:100%; }
+    .scribble path {
+      stroke: #dc2626; stroke-width: 2.5; fill: none;
+      stroke-linecap: round;
+      stroke-dasharray: 300; stroke-dashoffset: 300;
+      animation: draw 0.5s ease-out forwards;
+    }
+    .scribble path:nth-child(1){animation-delay:0.3s}
+    .scribble path:nth-child(2){animation-delay:0.7s}
+    .scribble path:nth-child(3){animation-delay:1.1s;stroke-width:3}
+    @keyframes draw { to{stroke-dashoffset:0} }
+
+    /* Highlight */
+    .hline {
+      height: 10px; background: #e0ddd8;
+      border-radius: 2px; position: relative; overflow: hidden;
+    }
+    .hline::after {
+      content:''; position:absolute;
+      top:0;left:-100%;width:100%;height:100%;
+      background: rgba(234,179,8,0.5);
+      animation: sweep 0.4s ease-out forwards;
+    }
+    .hline:nth-child(1)::after{animation-delay:0.4s}
+    .hline:nth-child(3)::after{animation-delay:0.75s}
+    .hline:nth-child(5)::after{animation-delay:1.1s}
+    @keyframes sweep { from{left:-100%} to{left:0} }
+
+    /* Confetti */
+    .confetti-wrap { position:absolute;width:100%;height:100%;overflow:hidden;pointer-events:none; }
+    .cp {
+      position: absolute;
+      width: 8px; height: 8px;
+      top: -10px; left: var(--x);
+      background: var(--c);
+      animation: fall 1.4s ease-in forwards;
+      animation-delay: var(--d);
+      transform: rotate(var(--r));
+    }
+    @keyframes fall { to{top:110%;transform:rotate(calc(var(--r) + 720deg));opacity:0.2} }
+    .checkmark { font-size: 64px; animation: pop 0.5s 0.2s cubic-bezier(0.34,1.56,0.64,1) both; }
+    @keyframes pop { from{opacity:0;transform:scale(0.2)} to{opacity:1;transform:scale(1)} }
+
+    /* Holy grail */
+    .ray {
+      position: absolute;
+      width: 3px; height: 75px;
+      background: linear-gradient(to top, transparent, rgba(255,215,0,0.8));
+      transform-origin: bottom center;
+      top: 10px; left: 50%;
+      border-radius: 2px;
+      animation: rayPulse 2s ease-in-out infinite;
+    }
+    @keyframes rayPulse { 0%,100%{opacity:0.5;height:65px} 50%{opacity:1;height:85px} }
+    .halo {
+      position: absolute;
+      width: 80px; height: 18px;
+      border: 3px solid rgba(255,215,0,0.8);
+      border-radius: 50%;
+      top: 12px; left: 50%;
+      transform: translateX(-50%);
+      animation: haloPulse 2s ease-in-out infinite;
+    }
+    @keyframes haloPulse { 0%,100%{box-shadow:0 0 10px rgba(255,215,0,0.4)} 50%{box-shadow:0 0 25px rgba(255,215,0,0.9)} }
+    .trophy { font-size: 64px; position: relative; z-index:2; animation: float 2s ease-in-out infinite; filter: drop-shadow(0 0 16px rgba(255,215,0,0.8)); }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+  </style>
+</head>
+<body>
+
+  <div class="logo">ROAST MY<br>RESUME</div>
+  <div class="tagline">AI-powered brutal honesty · no survivors</div>
+
+  <div id="uploadSection">
+    <div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+      <span class="upload-icon">📄</span>
+      <div class="upload-title">Drop your resume here</div>
+      <div class="upload-sub">PDF only · we will not be kind</div>
+    </div>
+    <input type="file" id="fileInput" accept=".pdf">
+    <div class="file-chip" id="fileChip">📎 <span id="fileName"></span></div>
+    <button class="roast-btn" id="roastBtn" onclick="startRoast()" disabled>🔥 ROAST ME</button>
+  </div>
+
+  <div class="loading" id="loading">
+    <div class="loading-text">// ANALYZING YOUR LIFE CHOICES...</div>
+    <div style="margin-top:10px;font-size:10px;color:#333;letter-spacing:2px">PLEASE HOLD</div>
+  </div>
+
+  <div class="result" id="result">
+    <div class="score-panel" id="scorePanel">
+      <div class="score-number" id="scoreNum">0</div>
+      <div class="verdict" id="verdict"></div>
+      <div class="anim-stage" id="animStage"></div>
+      <div class="score-bar-bg"><div class="score-bar-fill" id="scoreBar"></div></div>
+    </div>
+
+    <div class="roast-box">
+      <div class="roast-label">// AI VERDICT</div>
+      <div class="opening neutral" id="opening"></div>
+
+      <div class="section-title good">▶ WHAT WORKS</div>
+      <div id="strengths"></div>
+
+      <div class="section-title bad">▶ WHAT'S BROKEN</div>
+      <div id="weaknesses"></div>
+
+      <div class="section-title accent">▶ THE ROAST</div>
+      <div id="roastLines"></div>
+
+      <div class="advice-box" id="advice"></div>
+    </div>
+
+    <button class="again-btn" onclick="reset()">↩ ROAST ANOTHER ONE</button>
+  </div>
+
+  <script>
+    const API_URL = 'http://127.0.0.1:8000/roast';
+
+    // Drag and drop
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); handleFile(e.dataTransfer.files[0]); });
+    fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+
+    let selectedFile = null;
+
+    function handleFile(file) {
+      if (!file || file.type !== 'application/pdf') { alert('PDF only please'); return; }
+      selectedFile = file;
+      document.getElementById('fileName').textContent = file.name;
+      document.getElementById('fileChip').style.display = 'flex';
+      document.getElementById('roastBtn').disabled = false;
+    }
+
+    async function startRoast() {
+      if (!selectedFile) return;
+
+      document.getElementById('uploadSection').style.display = 'none';
+      document.getElementById('loading').style.display = 'block';
+
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      try {
+        const res = await fetch(API_URL, { method: 'POST', body: formData });
+        const data = await res.json();
+        showResult(data);
+      } catch (err) {
+        alert('Something went wrong. Is the backend running?');
+        reset();
+      }
+    }
+
+    function getTier(score) {
+      if (score <= 30) return 0;
+      if (score <= 50) return 1;
+      if (score <= 70) return 2;
+      if (score <= 85) return 3;
+      if (score <= 95) return 4;
+      return 5;
+    }
+
+    function getVerdict(score) {
+      const verdicts = [
+        '— THIS IS A WAR CRIME —',
+        '— CERTIFIED TRASH —',
+        '— MY INTERN WROTE BETTER —',
+        '— MID BUT SALVAGEABLE —',
+        '— ACTUALLY NOT BAD —',
+        '— THE HOLY GRAIL —'
+      ];
+      return verdicts[getTier(score)];
+    }
+
+    function showResult(data) {
+      document.getElementById('loading').style.display = 'none';
+      const result = document.getElementById('result');
+      result.style.display = 'block';
+
+      const score = data.score;
+      const tier = getTier(score);
+      const tierClass = 't' + tier;
+
+      // Score panel
+      const panel = document.getElementById('scorePanel');
+      panel.className = 'score-panel ' + tierClass;
+      document.getElementById('scoreNum').textContent = score;
+      document.getElementById('verdict').textContent = getVerdict(score);
+
+      // Animate score bar
+      setTimeout(() => { document.getElementById('scoreBar').style.width = score + '%'; }, 100);
+
+      // Animation
+      document.getElementById('animStage').innerHTML = buildAnimation(tier);
+
+      // Text content
+      document.getElementById('opening').textContent = data.opening;
+
+      const strengths = document.getElementById('strengths');
+      strengths.innerHTML = data.strengths.map(s => `<div class="item good">+ ${s}</div>`).join('');
+
+      const weaknesses = document.getElementById('weaknesses');
+      weaknesses.innerHTML = data.weaknesses.map(w => `<div class="item bad">✗ ${w}</div>`).join('');
+
+      const roastLines = document.getElementById('roastLines');
+      roastLines.innerHTML = data.roast_lines.map(r => `<div class="item neutral">• ${r}</div>`).join('');
+
+      document.getElementById('advice').textContent = '💡 ' + data.advice;
+    }
+
+    function reset() {
+      selectedFile = null;
+      document.getElementById('fileInput').value = '';
+      document.getElementById('fileChip').style.display = 'none';
+      document.getElementById('roastBtn').disabled = true;
+      document.getElementById('result').style.display = 'none';
+      document.getElementById('uploadSection').style.display = 'block';
+    }
+
+    // --- ANIMATIONS ---
+    function buildAnimation(tier) {
+      if (tier === 0) return shredder();
+      if (tier === 1) return torn();
+      if (tier === 2) return redpen();
+      if (tier === 3) return highlight();
+      if (tier === 4) return confetti();
+      return holyGrail();
+    }
+
+    function shredder() {
+      const strips = Array.from({length: 14}, () => `<div class="strip"></div>`).join('');
+      const sparks = Array.from({length: 14}, (_, i) => {
+        const angle = (i / 14) * Math.PI * 2;
+        const dist = 50 + Math.random() * 35;
+        const colors = ['#ff3c1a','#ff8c00','#ffd700'];
+        return `<div class="spark" style="--x:${Math.cos(angle)*dist}px;--y:${Math.sin(angle)*dist}px;--d:${0.8+Math.random()*0.3}s;--c:${colors[i%3]}"></div>`;
+      }).join('');
+      return `
+        <div class="paper"><div class="paper-line"></div><div class="paper-line"></div><div class="paper-line" style="width:70%"></div><div class="paper-line"></div></div>
+        <div class="shredder">${strips}</div>
+        <div class="sparks">${sparks}</div>`;
+    }
+
+    function torn() {
+      return `
+        <div style="position:relative;width:200px;height:160px">
+          <div class="half half-top"><div class="dline"></div><div class="dline"></div><div class="dline" style="width:70%"></div></div>
+          <div class="half half-bot"><div class="dline"></div><div class="dline"></div></div>
+        </div>`;
+    }
+
+    function redpen() {
+      return `
+        <div class="doc">
+          <div class="dline"></div><div class="dline"></div><div class="dline" style="width:70%"></div>
+          <div class="dline"></div><div class="dline" style="width:85%"></div><div class="dline" style="width:60%"></div>
+          <svg class="scribble" viewBox="0 0 150 130">
+            <path d="M8 28 Q40 18 80 32 Q120 44 142 22"/>
+            <path d="M12 68 L138 62"/>
+            <path d="M10 98 Q45 88 88 102 Q128 114 142 92"/>
+          </svg>
+        </div>`;
+    }
+
+    function highlight() {
+      return `
+        <div class="doc">
+          <div class="hline"></div><div class="dline" style="width:75%"></div>
+          <div class="hline"></div><div class="dline" style="width:60%"></div>
+          <div class="hline"></div><div class="dline" style="width:80%"></div>
+        </div>`;
+    }
+
+    function confetti() {
+      const colors = ['#22c55e','#86efac','#ffd700','#fff','#16a34a'];
+      const pieces = Array.from({length: 28}, (_, i) => {
+        return `<div class="cp" style="--x:${Math.random()*100}%;--c:${colors[i%5]};--d:${Math.random()*0.8}s;--r:${Math.random()*360}deg"></div>`;
+      }).join('');
+      return `<div class="confetti-wrap">${pieces}</div><div class="checkmark">✅</div>`;
+    }
+
+    function holyGrail() {
+      const rays = Array.from({length: 12}, (_, i) => {
+        const angle = (i / 12) * 360;
+        return `<div class="ray" style="transform:translateX(-50%) rotate(${angle}deg);animation-delay:${i*0.12}s"></div>`;
+      }).join('');
+      return `
+        <div style="position:relative;width:200px;height:160px;display:flex;align-items:center;justify-content:center">
+          ${rays}
+          <div class="halo"></div>
+          <div class="trophy">🏆</div>
+        </div>`;
+    }
+  </script>
+</body>
+</html>
